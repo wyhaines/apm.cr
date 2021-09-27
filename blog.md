@@ -120,4 +120,72 @@ With that piece taken care of, the other major component involved in building an
 
 ## Telemetry Framework
 
-New Relic has agents for a variety of different programming languages
+New Relic has agents for a [variety of different programming languages](https://docs.newrelic.com/docs/agents/) including C, Golang, Java, .NET, Node.js, PHP, Python, and Ruby. Each of these agents leverages a proprietary New Relic protocol for transmitting Traces, Metrics, Events, and Logs to the New Relic data ingest platform.
+
+There are a number of very strong reasons why an APM agent for Crystal that aims to support the New Relic platform should utilize the proprietary New Relic protocol:
+
+* it is a robust, time and usage tested protocol
+* it has complete coverage across all of the telemetry analysis tools that New Relic offers
+
+However, there are also a few important contraindications toward using the proprietary protocol: 
+
+* it is not open sourced; New Relic's protocol specific repository, tests, and specifications for their protocol are all currently internal
+* but it isn't exactly closed source; all of the New Relic agents, which all use the proprietary protocol, are themselves open sourced
+* New Relic supports open source, in a number of ways, large and small
+* open standards, such as [OpenTelemetry](https://opentelemetry.io/), are becoming mature and stable, and will be widely supported and utilized
+
+After weighing these factors, I made the judgement that the initial development of this APM agent would utilize OpenTelemetry as the protocol for data delivery.
+
+The OpenTelemetry project provides libraries, [documentation](https://opentelemetry.io/docs/), and support for several languages, including [C++](https://opentelemetry.io/docs/cpp/), [.NET](https://opentelemetry.io/docs/net/), [Erlang/Elixir](https://opentelemetry.io/docs/erlang/), [Go](https://opentelemetry.io/docs/go/), [Java](https://opentelemetry.io/docs/java/), [Javascript](https://opentelemetry.io/docs/js/), [PHP](https://opentelemetry.io/docs/php/), [Python](https://opentelemetry.io/docs/python/), and [Ruby](https://opentelemetry.io/docs/ruby/).
+
+Crystal is not in that list, and searches of the available crystal langauge shards for it didn't reveal any, so I decided that I would have to [start writing it myself](https://github.com/wyhaines/opentelemetry-api.cr).
+
+It might go without saying, but given that OpenTelemetry seeks to be a comprehensive, open, general protocol for Traces, Metrics, and Logs, as well as related supporting data types, it is a complex network of protocols, and the implementation is non-trivial.
+
+However, at the same time, Crystal provides a syntax that supports developer-friendly, easy to use APIs, making simplicity and ease-of-use high priorities for any OpenTelemetry library that I might build. A lot of effort is going into creating an OpenTelemetry support library that, regardess of whether it is used in my own [APM](https://github.com/wyhaines/apm.cr) library, or in some other project, is ultimately as simple to use as is possible.
+
+As of this writing, the state of the OpenTelemetry library should still be considered to be pre-alpha, but users will hopefully find the use of it to be flexible and intuitive.
+
+```crystal
+OpenTelemetry.configure do |config|
+  config.service_name = "my_app_or_library"
+  config.service_version = "1.1.1"
+  config.exporter = OpenTelemetry::IOExporter.new(:STDOUT)
+end
+
+OpenTelemetry.tracer_provider.tracer.in_span("request") do |span|
+  span.set_attribute("verb", "GET")
+  span.set_attribute("url", "http://example.com/foo")
+  span.add_event("dispatching to handler")
+  tracer.in_span("handler") do |child_span|
+    child_span.add_event("handling request")
+    tracer.in_span("db") do |child_span|
+      child_span.add_event("querying database")
+    end
+  end
+end
+```
+
+These two libraries are coming together, along with command line tooling, to enable simple installation and management of the OpenTelemetry agent functionality within any Crystal program.
+
+Installation should be as simple as adding the shard to your program:
+
+```yaml
+dependencies:
+  apm:
+    github: wyhaines/apm.cr
+```
+
+And then, within your code, requiring the APM code:
+
+```crystal
+require "apm"
+```
+
+
+
+There is a lot of work left to do on the OpenTelemetry support, but my hope is that it will be able to provide the full gamut of OpenTelemetry feature -- Traces, Metrics, and Logs -- in order to provide comprehensive observability features.
+
+The APM library itself is in a holding pattern, waiting on a few more features of the OpenTelemetry library to be implemented, but both should soon be usable enough to start delivering basic application tracing information to [New Relic](https://newrelic.com/solutions/opentelemetry?utm_campaign=FY21-Q4-DEV-OBSV-AMER-TWITCH-OS-None-DEVREL&utm_medium=OS&utm_source=TWITCH&utm_content=DEVREL&fiscal_year=FY21&quarter=Q4&gtm=DEV&program=OBSV&ad_type=None&geo=AMER), or any other OpenTelemetry Collector endpoint.
+
+Please Watch both the [OpenTelemetry](https://github.com/wyhaines/opentelemetry-api.cr) and the [APM](https://github.com/wyhaines/apm.cr) libraries for prompt notifications as soon as new releases are issued on these libraries. 

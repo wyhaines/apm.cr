@@ -1,8 +1,8 @@
 # apm.cr
 
-This is an [APM](https://www.therelicans.com/wyhaines/the-basicest-basics-of-how-an-apm-system-works-847) agent implementation for Crystal.It is being built with OpenTelementry protocol support, which should enable the agent to deliver metrics, traces and logs to multiple vendors, such as [New Relic](trynewrelic.com), Datadog, and others.
+This is an [APM](https://www.therelicans.com/wyhaines/the-basicest-basics-of-how-an-apm-system-works-847) agent implementation for Crystal.It is being built with OpenTelementry protocol support, which should enable the agent to deliver metrics, traces and logs to multiple vendors, such as [New Relic](https://trynewrelic.com), Datadog, and others.
 
-It will hook into an application, automatically, to enable collection and reporting of various metrics relating to performance and behavior
+It will hook into an application, automatically, to enable collection and reporting of various metrics relating to performance and behavior.
 
 ## Installation
 
