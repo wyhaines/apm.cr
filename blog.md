@@ -110,7 +110,7 @@ Hello, world!
 Elapsed Time: 00:00:00.000003700
 ```
 
-There is a slight, measurable approach to the execution speed, given the simplicity of the method that is being wrapped, and the approach that is being used. It is possible that the tracing code might see implementation improvements in the future which can reduce some of this, but in the context of real methods (which tend to do considerably more work than outputting "Hello, world!"), the incremental cost of tracing is negligible.
+There is a slight, measurable cost to the execution speed, given the simplicity of the method that is being wrapped, and the approach that is being used. It is possible that the tracing code might see implementation improvements in the future which can reduce some of this, but in the context of real methods (which tend to do considerably more work than outputting "Hello, world!"), the incremental cost of tracing is negligible.
 
 It is still likely that some library methods will require hand curated code injection, but this facility will work for many of the pieces that the APM system will want to measure.
 
@@ -152,7 +152,9 @@ OpenTelemetry.configure do |config|
   config.service_version = "1.1.1"
   config.exporter = OpenTelemetry::IOExporter.new(:STDOUT)
 end
+```
 
+```crystal
 OpenTelemetry.tracer_provider.tracer.in_span("request") do |span|
   span.set_attribute("verb", "GET")
   span.set_attribute("url", "http://example.com/foo")
@@ -181,8 +183,6 @@ And then, within your code, requiring the APM code:
 ```crystal
 require "apm"
 ```
-
-
 
 There is a lot of work left to do on the OpenTelemetry support, but my hope is that it will be able to provide the full gamut of OpenTelemetry feature -- Traces, Metrics, and Logs -- in order to provide comprehensive observability features.
 
